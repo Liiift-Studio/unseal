@@ -1,5 +1,6 @@
 // API route — receives a PDF upload and returns an audit report.
 import { type NextRequest } from "next/server"
+import type { AuditOptions } from "unseal"
 
 const MAX_BYTES = 4 * 1024 * 1024 // 4 MB
 
@@ -22,10 +23,25 @@ export async function POST(req: NextRequest) {
 		return Response.json({ error: "File must be a PDF" }, { status: 415 })
 	}
 
+	// Parse optional tier overrides sent from AuditDemo checkboxes.
+	let options: AuditOptions = {}
+	const rawOptions = formData.get("options")
+	if (typeof rawOptions === "string") {
+		try {
+			const parsed = JSON.parse(rawOptions) as Record<string, unknown>
+			options = {
+				glyphPositionLeak: parsed.glyphPositionLeak === true,
+				patternOracle: parsed.patternOracle === true,
+			}
+		} catch {
+			// Ignore malformed options — fall back to defaults.
+		}
+	}
+
 	try {
 		const { audit } = await import("unseal")
 		const buffer = await file.arrayBuffer()
-		const report = await audit(buffer)
+		const report = await audit(buffer, options)
 		return Response.json({ report })
 	} catch (err) {
 		console.error("Unseal audit error:", err)

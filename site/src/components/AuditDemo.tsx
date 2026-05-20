@@ -1,7 +1,13 @@
 "use client"
-// AuditDemo — drag-and-drop PDF upload with live audit results.
+// AuditDemo — drag-and-drop PDF upload with live audit results and Tier 2/3 toggles.
 
 import { useState, useRef, useCallback, type DragEvent } from "react"
+
+interface CandidateString {
+	text: string
+	confidence: number
+	reasoning: string
+}
 
 interface Finding {
 	check: string
@@ -10,6 +16,7 @@ interface Finding {
 	bbox?: [number, number, number, number]
 	detail: string
 	recoveredText?: string
+	candidates?: CandidateString[]
 }
 
 interface AuditReport {
@@ -44,12 +51,15 @@ const CHECK_LABELS: Record<string, string> = {
 export default function AuditDemo() {
 	const [state, setState] = useState<State>({ status: "idle" })
 	const [isDragging, setIsDragging] = useState(false)
+	const [tier2, setTier2] = useState(false)
+	const [tier3, setTier3] = useState(false)
 	const inputRef = useRef<HTMLInputElement>(null)
 
 	const runAudit = useCallback(async (file: File) => {
 		setState({ status: "loading" })
 		const form = new FormData()
 		form.append("pdf", file)
+		form.append("options", JSON.stringify({ glyphPositionLeak: tier2, patternOracle: tier3 }))
 		try {
 			const res = await fetch("/api/audit", { method: "POST", body: form })
 			const data = await res.json() as { report?: AuditReport; error?: string }
@@ -61,7 +71,7 @@ export default function AuditDemo() {
 		} catch {
 			setState({ status: "error", message: "Network error — please try again" })
 		}
-	}, [])
+	}, [tier2, tier3])
 
 	const handleFiles = useCallback((files: FileList | null) => {
 		const file = files?.[0]
@@ -87,6 +97,37 @@ export default function AuditDemo() {
 
 	return (
 		<div className="flex flex-col gap-6">
+			{/* Tier options */}
+			<div className="flex flex-col gap-2">
+				<p className="text-xs opacity-30 uppercase tracking-widest">Analysis depth</p>
+				<div className="flex flex-col gap-2">
+					<label className="flex items-start gap-3 cursor-pointer group">
+						<input
+							type="checkbox"
+							checked={tier2}
+							onChange={e => setTier2(e.target.checked)}
+							className="mt-0.5 accent-current opacity-70"
+						/>
+						<span className="text-xs leading-relaxed opacity-60 group-hover:opacity-90 transition-opacity">
+							<span className="font-medium opacity-100">Tier 2</span> — Glyph position analysis
+							<span className="opacity-60"> (slower · requires embedded fonts)</span>
+						</span>
+					</label>
+					<label className="flex items-start gap-3 cursor-pointer group">
+						<input
+							type="checkbox"
+							checked={tier3}
+							onChange={e => setTier3(e.target.checked)}
+							className="mt-0.5 accent-current opacity-70"
+						/>
+						<span className="text-xs leading-relaxed opacity-60 group-hover:opacity-90 transition-opacity">
+							<span className="font-medium opacity-100">Tier 3</span> — Pattern oracle: AI candidate ranking
+							<span className="opacity-60"> (requires ANTHROPIC_API_KEY in Vercel env)</span>
+						</span>
+					</label>
+				</div>
+			</div>
+
 			{/* Drop zone */}
 			<label
 				className={`
@@ -109,7 +150,7 @@ export default function AuditDemo() {
 				{state.status === "loading" ? (
 					<>
 						<div className="w-6 h-6 border-2 border-white/20 border-t-white/70 rounded-full animate-spin" />
-						<p className="text-sm opacity-50">Auditing…</p>
+						<p className="text-sm opacity-50">Auditing{tier3 ? " — AI oracle running…" : "…"}</p>
 					</>
 				) : (
 					<>
@@ -118,7 +159,7 @@ export default function AuditDemo() {
 							<path d="M6 22v2a2 2 0 002 2h16a2 2 0 002-2v-2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
 						</svg>
 						<p className="text-sm opacity-60">Drop a PDF here, or <span className="opacity-100 underline underline-offset-2">browse</span></p>
-						<p className="text-xs opacity-30">Max 4 MB · no data is stored · no AI is used</p>
+						<p className="text-xs opacity-30">Max 4 MB · no data is stored</p>
 					</>
 				)}
 			</label>
@@ -151,7 +192,9 @@ export default function AuditDemo() {
 							</svg>
 							<div>
 								<p className="text-sm text-emerald-300 font-medium">No issues detected</p>
-								<p className="text-xs text-emerald-400/60 mt-0.5">All four Tier 1 checks passed</p>
+								<p className="text-xs text-emerald-400/60 mt-0.5">
+									{tier3 ? "Tier 1–3 checks passed" : tier2 ? "Tier 1–2 checks passed" : "All Tier 1 checks passed"}
+								</p>
 							</div>
 						</div>
 					) : (
@@ -176,9 +219,27 @@ export default function AuditDemo() {
 										)}
 									</div>
 									<p className="text-xs leading-relaxed opacity-60">{f.detail}</p>
+
 									{f.recoveredText && (
 										<div className="rounded bg-white/5 px-3 py-2 text-xs font-mono text-amber-200/80 border border-white/5">
 											{f.recoveredText}
+										</div>
+									)}
+
+									{f.candidates && f.candidates.length > 0 && (
+										<div className="flex flex-col gap-1 mt-1">
+											<p className="text-xs opacity-30 uppercase tracking-wider">AI oracle candidates</p>
+											{f.candidates.slice(0, 3).map((c, ci) => (
+												<div key={ci} className="flex items-start gap-3 text-xs">
+													<span className="font-mono text-purple-300/80 shrink-0 tabular-nums">
+														{(c.confidence * 100).toFixed(0)}%
+													</span>
+													<span className="font-mono text-white/70">{c.text}</span>
+													{c.reasoning && (
+														<span className="opacity-30 ml-auto shrink-0 max-w-[140px] truncate">{c.reasoning}</span>
+													)}
+												</div>
+											))}
 										</div>
 									)}
 								</div>
