@@ -8,7 +8,11 @@ export type {
 	AuditOptions,
 	AuditReport,
 	AuditFinding,
+	CandidateString,
 	UnsealOptions,
 	UnsealResult,
 	UnsealFinding,
 } from './types.js';
+
+export type { Candidate } from './oracle/naccache-whelan.js';
+export type { RankedCandidate } from './oracle/pattern-oracle.js';

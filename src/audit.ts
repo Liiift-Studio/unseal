@@ -6,6 +6,7 @@ import { checkTextUnderBox } from './checks/text-under-box.js';
 import { checkIncrementalSave } from './checks/incremental-save.js';
 import { checkMetadataLeak } from './checks/metadata-leak.js';
 import { checkPendingAnnotation } from './checks/pending-annotation.js';
+import { checkGlyphPosition } from './checks/glyph-position.js';
 
 /** Default options applied when the caller does not specify a value. */
 const DEFAULTS: Required<AuditOptions> = {
@@ -46,7 +47,6 @@ export async function audit(pdf: ArrayBuffer, options: AuditOptions = {}): Promi
 	}
 
 	// Page-level checks require knowing the page count.
-	// We get page count lazily once pdfjs loads.
 	let numPages = 0;
 
 	if (opts.textUnderBox || opts.pendingAnnotation || opts.glyphPositionLeak) {
@@ -66,9 +66,9 @@ export async function audit(pdf: ArrayBuffer, options: AuditOptions = {}): Promi
 		if (opts.pendingAnnotation) {
 			pageCheckPromises.push(checkPendingAnnotation(pdf, p));
 		}
-		// Tier 2: glyphPositionLeak — placeholder (no external dependency needed).
+		// Tier 2: real Bland et al. glyph-position check using font metrics.
 		if (opts.glyphPositionLeak) {
-			pageCheckPromises.push(checkGlyphPositionLeak(pdf, p));
+			pageCheckPromises.push(checkGlyphPosition(pdf, p));
 		}
 	}
 
@@ -79,6 +79,11 @@ export async function audit(pdf: ArrayBuffer, options: AuditOptions = {}): Promi
 	} else if (pageCheckPromises.length > 0) {
 		const results = await Promise.all(pageCheckPromises);
 		for (const r of results) allFindings.push(...r);
+	}
+
+	// Tier 3: pattern oracle — enumerate and rank candidates for redaction bars.
+	if (opts.patternOracle) {
+		await runPatternOracle(pdf, allFindings);
 	}
 
 	// Deduplicate findings by check+page+bbox key.
@@ -101,62 +106,105 @@ export async function audit(pdf: ArrayBuffer, options: AuditOptions = {}): Promi
 }
 
 /**
- * Tier 2: Check for glyphs positioned outside the visible page area or with
- * zero-width rendering that could be hiding content.
- * Returns findings if such glyphs are detected.
+ * Tier 3 oracle pass: for each text-under-box finding with a bbox, enumerate width-matching
+ * candidates via the Naccache-Whelan bar-width attack and rank them with the LLM pattern oracle.
+ * Attaches ranked candidates to each finding's `candidates` field.
  */
-async function checkGlyphPositionLeak(pdf: ArrayBuffer, pageNum: number): Promise<AuditFinding[]> {
+async function runPatternOracle(pdf: ArrayBuffer, findings: AuditFinding[]): Promise<void> {
+	const oracleTargets = findings.filter(f => f.check === 'text-under-box' && f.bbox);
+	if (oracleTargets.length === 0) return;
+
+	const { rankCandidates } = await import('./oracle/pattern-oracle.js');
+	const { enumerateCandidates } = await import('./oracle/naccache-whelan.js');
+	const { fallbackFontMetrics } = await import('./font/metrics.js');
 	const { getDocument } = await import('pdfjs-dist/legacy/build/pdf.mjs');
 
 	const doc = await getDocument({ data: pdf.slice(0) }).promise;
-	if (pageNum > doc.numPages) {
-		await doc.destroy();
-		return [];
+	const metrics = fallbackFontMetrics();
+
+	// Group targets by page.
+	const byPage = new Map<number, AuditFinding[]>();
+	for (const f of oracleTargets) {
+		const pg = f.page ?? 1;
+		const list = byPage.get(pg) ?? [];
+		list.push(f);
+		byPage.set(pg, list);
 	}
 
-	const page = await doc.getPage(pageNum);
-	const viewport = page.getViewport({ scale: 1.0 });
-	const [pageWidth, pageHeight] = [viewport.width, viewport.height];
+	type RawTextItem = { str: string; transform: number[]; width: number };
 
-	let textContent: Awaited<ReturnType<typeof page.getTextContent>>;
-	try {
-		textContent = await page.getTextContent();
-	} finally {
+	for (const [pageNum, pageFindgs] of byPage.entries()) {
+		if (pageNum > doc.numPages) continue;
+
+		const page = await doc.getPage(pageNum);
+		const tc = await page.getTextContent();
 		page.cleanup();
-		await doc.destroy();
-	}
 
-	const findings: AuditFinding[] = [];
-
-	for (const item of textContent.items as Array<{ str: string; transform: number[]; width: number; height: number }>) {
-		if (!item.str.trim()) continue;
-
-		const tx = item.transform[4] ?? 0;
-		const ty = item.transform[5] ?? 0;
-
-		// Flag items positioned far outside the page boundaries (more than 50pt).
-		const outsidePage =
-			tx < -50 ||
-			tx > pageWidth + 50 ||
-			ty < -50 ||
-			ty > pageHeight + 50;
-
-		// Flag items with valid text but near-zero width (possible white-on-white or invisible text).
-		const nearZeroWidth = item.width !== undefined && item.width > 0 && item.width < 1 && item.str.length > 2;
-
-		if (outsidePage || nearZeroWidth) {
-			findings.push({
-				check: 'glyph-position',
-				severity: 'HIGH',
-				page: pageNum,
-				bbox: [tx, ty, tx + (item.width || 10), ty + (item.height || 10)],
-				detail: outsidePage
-					? `Text item positioned outside page bounds at (${tx.toFixed(1)}, ${ty.toFixed(1)}) on page ${pageNum}`
-					: `Text item with near-zero width (${item.width.toFixed(3)}pt) may be invisible on page ${pageNum}`,
-				recoveredText: item.str,
+		// Sort by reading order: top-to-bottom (descending y in bottom-left space), left-to-right.
+		const items = (tc.items as RawTextItem[])
+			.filter(i => i.str.trim())
+			.sort((a, b) => {
+				const dy = (b.transform[5] ?? 0) - (a.transform[5] ?? 0);
+				if (Math.abs(dy) > 2) return dy;
+				return (a.transform[4] ?? 0) - (b.transform[4] ?? 0);
 			});
+
+		const fullPageText = items.map(i => i.str).join(' ');
+
+		for (const finding of pageFindgs) {
+			if (!finding.bbox) continue;
+
+			const [x1, y1, x2, y2] = finding.bbox;
+			const barWidth = x2 - x1;
+			// Estimate font size from bar height; clamp to a reasonable minimum.
+			const fontSize = Math.max(8, y2 - y1);
+
+			// Split page text relative to the bar's vertical position for context.
+			const aboveItems = items.filter(i => (i.transform[5] ?? 0) > y2);
+			const belowItems = items.filter(i => (i.transform[5] ?? 0) < y1);
+			const contextBefore = aboveItems
+				.slice(-5)
+				.map(i => i.str)
+				.join(' ');
+			const contextAfter = belowItems
+				.slice(0, 5)
+				.map(i => i.str)
+				.join(' ');
+
+			const candidates = await enumerateCandidates({
+				barWidth,
+				metrics,
+				fontSize,
+				maxCandidates: 20,
+				contextBefore,
+				contextAfter,
+			});
+
+			// If we already have recoveredText, ensure it leads the candidate list.
+			if (finding.recoveredText) {
+				const alreadyIn = candidates.some(c => c.text === finding.recoveredText);
+				if (!alreadyIn) {
+					candidates.unshift({ text: finding.recoveredText, widthError: 0, probability: 1.0 });
+				}
+			}
+
+			if (candidates.length === 0) continue;
+
+			const ranked = await rankCandidates({
+				candidates,
+				contextBefore,
+				contextAfter,
+				documentContext: fullPageText,
+				maxResults: 5,
+			});
+
+			finding.candidates = ranked.map(r => ({
+				text: r.candidate,
+				confidence: r.confidence,
+				reasoning: r.reasoning,
+			}));
 		}
 	}
 
-	return findings;
+	await doc.destroy();
 }

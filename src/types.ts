@@ -22,6 +22,15 @@ export interface AuditReport {
 	sha256: string;
 }
 
+/** A candidate string produced by the Naccache-Whelan bar-width attack and ranked by the LLM oracle. */
+export interface CandidateString {
+	text: string;
+	/** LLM confidence score 0 to 1. */
+	confidence: number;
+	/** LLM reasoning for this ranking. */
+	reasoning: string;
+}
+
 export interface AuditFinding {
 	check:
 		| 'text-under-box'
@@ -37,6 +46,8 @@ export interface AuditFinding {
 	detail: string;
 	/** Text recovered from beneath a redaction mark, if available. */
 	recoveredText?: string;
+	/** LLM-ranked candidate strings for the redacted region (Tier 3 oracle only). */
+	candidates?: CandidateString[];
 }
 
 export interface UnsealOptions {
