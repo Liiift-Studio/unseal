@@ -63,6 +63,12 @@ export interface UnsealOptions {
 	output?: 'pdf' | 'report' | 'both';
 	/** Run audit in the same pass and include result in UnsealResult. Default true. */
 	includeAudit?: boolean;
+	/**
+	 * Options forwarded to the inline audit pass (only used when includeAudit is true).
+	 * Tier 1 checks are always on by default; use this to enable Tier 2/3:
+	 * `{ glyphPositionLeak: true, patternOracle: true }`
+	 */
+	auditOptions?: AuditOptions;
 }
 
 export interface UnsealResult {

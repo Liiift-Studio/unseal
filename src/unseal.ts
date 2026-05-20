@@ -14,7 +14,7 @@ import { stripAnnotations } from './recovery/strip-annotations.js';
 import { extractPriorRevision } from './recovery/extract-revision.js';
 
 /** Default options applied when the caller does not specify a value. */
-const DEFAULTS: Required<UnsealOptions> = {
+const DEFAULTS: Omit<Required<UnsealOptions>, 'auditOptions'> = {
 	stripOverlays: true,
 	stripAnnotations: true,
 	extractPriorRevision: true,
@@ -34,12 +34,14 @@ export async function unseal(pdf: ArrayBuffer, options: UnsealOptions = {}): Pro
 	const opts = { ...DEFAULTS, ...options };
 
 	// Run audit in parallel with recovery if requested.
+	// Tier 1 checks are always on; caller can enable Tier 2/3 via auditOptions.
 	const auditPromise = opts.includeAudit
 		? audit(pdf, {
 				textUnderBox: true,
 				incrementalSave: true,
 				metadataLeak: true,
 				pendingAnnotation: true,
+				...opts.auditOptions,
 			})
 		: Promise.resolve(undefined);
 
