@@ -1,10 +1,16 @@
 import type { Metadata } from "next"
 import "./globals.css"
-import { Inter } from "next/font/google"
+import { Inter, Instrument_Serif } from "next/font/google"
 import { Analytics } from "@/components/Analytics"
 import { CookieBanner } from "@/components/CookieBanner"
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
+const instrumentSerif = Instrument_Serif({
+	subsets: ["latin"],
+	weight: "400",
+	style: ["normal", "italic"],
+	variable: "--font-display",
+})
 
 export const metadata: Metadata = {
 	title: "unseal — Detect fake PDF redactions",
@@ -28,7 +34,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
 	return (
-		<html lang="en" className={`h-full antialiased ${inter.variable}`}>
+		<html lang="en" className={`h-full ${inter.variable} ${instrumentSerif.variable}`}>
 			<body className="min-h-full flex flex-col">
 				{children}
 				<Analytics />

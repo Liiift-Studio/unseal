@@ -1,4 +1,4 @@
-// OG image for unseal.dev — 1200×630 with Merriweather heading.
+// OG image for unseal.dev — 1200×630, legal/classified theme.
 import { ImageResponse } from "next/og"
 import { readFileSync } from "fs"
 import { join } from "path"
@@ -14,26 +14,31 @@ export default function Image() {
 		(
 			<div
 				style={{
-					background: "hsl(220, 22%, 8%)",
+					background: "#f2ede3",
 					width: "100%",
 					height: "100%",
 					display: "flex",
 					flexDirection: "column",
-					padding: "80px",
+					padding: "72px 80px",
 					justifyContent: "space-between",
-					color: "#f0ece3",
+					color: "#111111",
 				}}
 			>
-				<div style={{ display: "flex", alignItems: "center" }}>
-					<span style={{ fontSize: "13px", letterSpacing: "0.2em", opacity: 0.4, textTransform: "uppercase", fontFamily: "sans-serif" }}>
-						unseal
+				{/* Masthead */}
+				<div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "2px solid #111111", paddingBottom: "16px" }}>
+					<span style={{ fontSize: "13px", letterSpacing: "0.22em", textTransform: "uppercase", fontFamily: "sans-serif" }}>
+						UNSEAL
 					</span>
+					<span style={{ fontSize: "13px", opacity: 0.4, fontFamily: "monospace" }}>unseal.dev</span>
 				</div>
 
-				<div style={{ display: "flex", flexDirection: "column", gap: "28px" }}>
+				{/* Hero */}
+				<div style={{ display: "flex", flexDirection: "column", gap: "0px" }}>
+					{/* Redaction bar motif */}
+					<div style={{ height: "22px", background: "#111111", width: "100%", marginBottom: "32px" }} />
 					<div
 						style={{
-							fontSize: "88px",
+							fontSize: "86px",
 							fontFamily: "Merriweather",
 							fontWeight: 300,
 							lineHeight: "1.05",
@@ -41,18 +46,17 @@ export default function Image() {
 					>
 						Your redactions
 						<br />
-						<span style={{ opacity: 0.42, fontStyle: "italic" }}>might be fake.</span>
+						<span style={{ fontStyle: "italic", opacity: 0.5 }}>might be fake.</span>
 					</div>
-					<p style={{ fontSize: "22px", opacity: 0.5, margin: 0, lineHeight: "1.5", fontFamily: "sans-serif" }}>
+					<p style={{ fontSize: "21px", opacity: 0.5, margin: "28px 0 0", lineHeight: "1.5", fontFamily: "sans-serif" }}>
 						Four PDF redaction vulnerabilities detected in milliseconds.
-						<br />
 						Audit and recover naïvely redacted documents in Node.js.
 					</p>
 				</div>
 
-				<div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
-					<span style={{ fontSize: "14px", opacity: 0.35, fontFamily: "sans-serif" }}>unseal.dev</span>
-					<span style={{ fontSize: "14px", opacity: 0.25, fontFamily: "monospace" }}>npm install unseal</span>
+				{/* Footer */}
+				<div style={{ display: "flex", justifyContent: "flex-end" }}>
+					<span style={{ fontSize: "14px", opacity: 0.35, fontFamily: "monospace" }}>npm install unseal</span>
 				</div>
 			</div>
 		),

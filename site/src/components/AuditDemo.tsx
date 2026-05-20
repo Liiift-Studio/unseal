@@ -32,12 +32,12 @@ type State =
 	| { status: "done"; report: AuditReport; filename: string }
 	| { status: "error"; message: string }
 
-const SEVERITY_STYLES: Record<Finding["severity"], string> = {
-	CRITICAL: "bg-red-950/60 text-red-300 border border-red-800/50",
-	HIGH: "bg-orange-950/60 text-orange-300 border border-orange-800/50",
-	MEDIUM: "bg-amber-950/60 text-amber-300 border border-amber-800/50",
-	LOW: "bg-sky-950/60 text-sky-300 border border-sky-800/50",
-	INFO: "bg-white/5 text-white/50 border border-white/10",
+const SEVERITY_BADGE: Record<Finding["severity"], string> = {
+	CRITICAL: "bg-black text-[#f2ede3]",
+	HIGH: "bg-red-700 text-white",
+	MEDIUM: "bg-amber-600 text-white",
+	LOW: "bg-blue-700 text-white",
+	INFO: "bg-black/10 text-black/60",
 }
 
 const CHECK_LABELS: Record<string, string> = {
@@ -99,18 +99,18 @@ export default function AuditDemo() {
 		<div className="flex flex-col gap-6">
 			{/* Tier options */}
 			<div className="flex flex-col gap-2">
-				<p className="text-xs opacity-30 uppercase tracking-widest">Analysis depth</p>
-				<div className="flex flex-col gap-2">
+				<p className="text-[10px] uppercase tracking-[0.18em]" style={{ color: "var(--ink-dim)" }}>Analysis depth</p>
+				<div className="flex flex-col gap-2 mt-1">
 					<label className="flex items-start gap-3 cursor-pointer group">
 						<input
 							type="checkbox"
 							checked={tier2}
 							onChange={e => setTier2(e.target.checked)}
-							className="mt-0.5 accent-current opacity-70"
+							className="mt-0.5 accent-black"
 						/>
-						<span className="text-xs leading-relaxed opacity-60 group-hover:opacity-90 transition-opacity">
-							<span className="font-medium opacity-100">Tier 2</span> — Glyph position analysis
-							<span className="opacity-60"> (slower · requires embedded fonts)</span>
+						<span className="text-xs leading-relaxed" style={{ color: "var(--ink-dim)" }}>
+							<span className="font-medium" style={{ color: "var(--foreground)" }}>Tier 2</span> — Glyph position analysis
+							<span> · slower · requires embedded fonts</span>
 						</span>
 					</label>
 					<label className="flex items-start gap-3 cursor-pointer group">
@@ -118,11 +118,11 @@ export default function AuditDemo() {
 							type="checkbox"
 							checked={tier3}
 							onChange={e => setTier3(e.target.checked)}
-							className="mt-0.5 accent-current opacity-70"
+							className="mt-0.5 accent-black"
 						/>
-						<span className="text-xs leading-relaxed opacity-60 group-hover:opacity-90 transition-opacity">
-							<span className="font-medium opacity-100">Tier 3</span> — Pattern oracle: AI candidate ranking
-							<span className="opacity-60"> (requires ANTHROPIC_API_KEY in Vercel env)</span>
+						<span className="text-xs leading-relaxed" style={{ color: "var(--ink-dim)" }}>
+							<span className="font-medium" style={{ color: "var(--foreground)" }}>Tier 3</span> — Pattern oracle: AI candidate ranking
+							<span> · requires ANTHROPIC_API_KEY</span>
 						</span>
 					</label>
 				</div>
@@ -131,10 +131,10 @@ export default function AuditDemo() {
 			{/* Drop zone */}
 			<label
 				className={`
-					flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed px-8 py-12
+					flex flex-col items-center justify-center gap-3 rounded border-2 border-dashed px-8 py-10
 					cursor-pointer transition-colors
-					${isDragging ? "border-white/50 bg-white/8" : "border-white/15 hover:border-white/30 hover:bg-white/4"}
-					${state.status === "loading" ? "pointer-events-none opacity-60" : ""}
+					${isDragging ? "border-black/40 bg-black/5" : "border-black/15 hover:border-black/25 hover:bg-black/3"}
+					${state.status === "loading" ? "pointer-events-none opacity-50" : ""}
 				`}
 				onDragOver={onDragOver}
 				onDragLeave={onDragLeave}
@@ -149,24 +149,28 @@ export default function AuditDemo() {
 				/>
 				{state.status === "loading" ? (
 					<>
-						<div className="w-6 h-6 border-2 border-white/20 border-t-white/70 rounded-full animate-spin" />
-						<p className="text-sm opacity-50">Auditing{tier3 ? " — AI oracle running…" : "…"}</p>
+						<div className="w-5 h-5 border-2 border-black/15 border-t-black/60 rounded-full animate-spin" />
+						<p className="text-sm" style={{ color: "var(--ink-dim)" }}>
+							{tier3 ? "AI oracle running…" : "Auditing…"}
+						</p>
 					</>
 				) : (
 					<>
-						<svg width="32" height="32" viewBox="0 0 32 32" fill="none" className="opacity-40">
+						<svg width="28" height="28" viewBox="0 0 32 32" fill="none" className="opacity-25">
 							<path d="M16 6v14M16 6l-5 5M16 6l5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
 							<path d="M6 22v2a2 2 0 002 2h16a2 2 0 002-2v-2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
 						</svg>
-						<p className="text-sm opacity-60">Drop a PDF here, or <span className="opacity-100 underline underline-offset-2">browse</span></p>
-						<p className="text-xs opacity-30">Max 4 MB · no data is stored</p>
+						<p className="text-sm" style={{ color: "var(--ink-dim)" }}>
+							Drop a PDF here, or <span className="underline underline-offset-2" style={{ color: "var(--foreground)" }}>browse</span>
+						</p>
+						<p className="text-xs" style={{ color: "var(--ink-dim)", opacity: 0.5 }}>Max 4 MB · no data is stored</p>
 					</>
 				)}
 			</label>
 
 			{/* Error */}
 			{state.status === "error" && (
-				<div className="rounded-lg bg-red-950/50 border border-red-800/40 px-4 py-3 text-sm text-red-300">
+				<div className="rounded border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
 					{state.message}
 				</div>
 			)}
@@ -175,69 +179,69 @@ export default function AuditDemo() {
 			{state.status === "done" && (
 				<div className="flex flex-col gap-4">
 					<div className="flex items-center justify-between">
-						<p className="text-xs opacity-40 truncate">{state.filename}</p>
+						<p className="text-xs font-mono truncate" style={{ color: "var(--ink-dim)" }}>{state.filename}</p>
 						<button
 							onClick={() => setState({ status: "idle" })}
-							className="text-xs opacity-40 hover:opacity-70 transition-opacity shrink-0 ml-4"
+							className="text-xs ml-4 shrink-0 hover:opacity-60 transition-opacity"
+							style={{ color: "var(--ink-dim)" }}
 						>
 							Clear
 						</button>
 					</div>
 
 					{state.report.clean ? (
-						<div className="flex items-center gap-3 rounded-xl bg-emerald-950/50 border border-emerald-800/40 px-5 py-4">
-							<svg width="18" height="18" viewBox="0 0 18 18" fill="none" className="text-emerald-400 shrink-0">
+						<div className="flex items-center gap-3 rounded border border-black/15 px-4 py-4 bg-black/3">
+							<svg width="16" height="16" viewBox="0 0 18 18" fill="none" className="shrink-0 opacity-60">
 								<circle cx="9" cy="9" r="8" stroke="currentColor" strokeWidth="1.5"/>
 								<path d="M5.5 9l2.5 2.5 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
 							</svg>
 							<div>
-								<p className="text-sm text-emerald-300 font-medium">No issues detected</p>
-								<p className="text-xs text-emerald-400/60 mt-0.5">
+								<p className="text-sm font-medium">No issues detected</p>
+								<p className="text-xs mt-0.5" style={{ color: "var(--ink-dim)" }}>
 									{tier3 ? "Tier 1–3 checks passed" : tier2 ? "Tier 1–2 checks passed" : "All Tier 1 checks passed"}
 								</p>
 							</div>
 						</div>
 					) : (
 						<div className="flex flex-col gap-3">
-							<div className="flex items-center gap-2 text-sm">
-								<span className="text-amber-300 font-medium">{state.report.findings.length} issue{state.report.findings.length !== 1 ? "s" : ""} found</span>
-								<span className="opacity-30">·</span>
-								<span className="opacity-40">this PDF may not be securely redacted</span>
-							</div>
+							<p className="text-sm">
+								<span className="font-medium">{state.report.findings.length} issue{state.report.findings.length !== 1 ? "s" : ""} found</span>
+								<span className="ml-2 text-xs" style={{ color: "var(--ink-dim)" }}>this PDF may not be securely redacted</span>
+							</p>
 
 							{state.report.findings.map((f, i) => (
-								<div key={i} className="rounded-lg bg-white/3 border border-white/8 px-4 py-3 flex flex-col gap-2">
+								<div key={i} className="rounded border border-black/10 px-4 py-3 flex flex-col gap-2 bg-black/2">
 									<div className="flex items-center gap-2 flex-wrap">
-										<span className={`text-xs px-2 py-0.5 rounded font-mono tracking-wide ${SEVERITY_STYLES[f.severity]}`}>
+										<span className={`text-[10px] px-2 py-0.5 rounded-sm font-mono tracking-wider ${SEVERITY_BADGE[f.severity]}`}>
 											{f.severity}
 										</span>
-										<span className="text-xs font-medium opacity-80">
+										<span className="text-xs font-medium">
 											{CHECK_LABELS[f.check] ?? f.check}
 										</span>
 										{f.page && (
-											<span className="text-xs opacity-30">page {f.page}</span>
+											<span className="text-xs font-mono" style={{ color: "var(--ink-dim)" }}>p.{f.page}</span>
 										)}
 									</div>
-									<p className="text-xs leading-relaxed opacity-60">{f.detail}</p>
+									<p className="text-xs leading-relaxed" style={{ color: "var(--ink-dim)" }}>{f.detail}</p>
 
 									{f.recoveredText && (
-										<div className="rounded bg-white/5 px-3 py-2 text-xs font-mono text-amber-200/80 border border-white/5">
+										<div
+											className="rounded px-3 py-2 text-xs font-mono border border-black/10"
+											style={{ background: "var(--code-bg)" }}
+										>
 											{f.recoveredText}
 										</div>
 									)}
 
 									{f.candidates && f.candidates.length > 0 && (
 										<div className="flex flex-col gap-1 mt-1">
-											<p className="text-xs opacity-30 uppercase tracking-wider">AI oracle candidates</p>
+											<p className="text-[10px] uppercase tracking-wider" style={{ color: "var(--ink-dim)" }}>AI oracle candidates</p>
 											{f.candidates.slice(0, 3).map((c, ci) => (
-												<div key={ci} className="flex items-start gap-3 text-xs">
-													<span className="font-mono text-purple-300/80 shrink-0 tabular-nums">
+												<div key={ci} className="flex items-start gap-3 text-xs font-mono">
+													<span className="shrink-0 tabular-nums" style={{ color: "var(--ink-dim)" }}>
 														{(c.confidence * 100).toFixed(0)}%
 													</span>
-													<span className="font-mono text-white/70">{c.text}</span>
-													{c.reasoning && (
-														<span className="opacity-30 ml-auto shrink-0 max-w-[140px] truncate">{c.reasoning}</span>
-													)}
+													<span>{c.text}</span>
 												</div>
 											))}
 										</div>
@@ -245,7 +249,7 @@ export default function AuditDemo() {
 								</div>
 							))}
 
-							<p className="text-xs opacity-25 mt-1">
+							<p className="text-xs font-mono" style={{ color: "var(--ink-dim)", opacity: 0.5 }}>
 								SHA-256 {state.report.sha256.slice(0, 16)}…
 							</p>
 						</div>
