@@ -1,0 +1,7 @@
+@import "tailwindcss";
+@import "./base.css";
+
+:root {
+	--background: hsl(220, 22%, 8%);
+	--btn-bg: hsl(220, 15%, 16%);
+}
