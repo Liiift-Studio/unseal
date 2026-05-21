@@ -230,8 +230,8 @@ npx unseal strip document.pdf --output unsealed.pdf --report findings.json`} />
 			<footer className="pt-10 border-t-2 border-black flex flex-col gap-6 text-xs">
 				<div className="flex flex-col gap-1">
 					<p className="text-[10px] uppercase tracking-[0.18em]" style={{ color: "var(--ink-dim)" }}>Also from Liiift Studio</p>
-					<a href="https://pdf-redact.vercel.app" className="text-sm hover:opacity-60 transition-opacity">
-						pdf-redact — True PDF content-stream redaction for Node.js →
+					<a href="https://scrubzero.org" className="text-sm hover:opacity-60 transition-opacity">
+						scrubzero — True PDF content-stream redaction for Node.js →
 					</a>
 				</div>
 				<div className="flex flex-wrap gap-x-6 gap-y-1" style={{ color: "var(--ink-dim)" }}>
