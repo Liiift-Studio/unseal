@@ -54,11 +54,19 @@ export default function Home() {
 
 				<div className="flex flex-wrap items-center gap-4">
 					<CopyInstall pkg="unseal" />
-					<a href="https://github.com/Liiift-Studio/unseal" className="text-sm transition-opacity hover:opacity-60" style={{ color: "var(--ink-dim)" }}>
-						GitHub →
+					<a
+						href="https://npmjs.com/package/unseal"
+						className="text-xs font-medium px-4 py-2 rounded-full transition-colors"
+						style={{ background: "var(--btn-bg)", color: "var(--btn-fg)" }}
+					>
+						npm
 					</a>
-					<a href="https://npmjs.com/package/unseal" className="text-sm transition-opacity hover:opacity-60" style={{ color: "var(--ink-dim)" }}>
-						npm →
+					<a
+						href="https://github.com/Liiift-Studio/unseal"
+						className="text-xs px-4 py-2 rounded-full border transition-colors opacity-70 hover:opacity-100"
+						style={{ borderColor: "var(--rule)", color: "var(--ink-dim)" }}
+					>
+						GitHub
 					</a>
 				</div>
 			</section>
