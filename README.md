@@ -7,26 +7,26 @@ The first package of its kind on npm.
 ## Installation
 
 ```bash
-npm install unseal
+npm install @liiift-studio/unseal
 ```
 
 ## CLI
 
 ```bash
 # Audit a PDF for fake or insecure redactions
-npx unseal audit document.pdf
+npx @liiift-studio/unseal audit document.pdf
 
 # Use a more thorough preset
-npx unseal audit document.pdf --preset compliance
+npx @liiift-studio/unseal audit document.pdf --preset compliance
 
 # Output as JSON
-npx unseal audit document.pdf --json
+npx @liiift-studio/unseal audit document.pdf --json
 
 # Strip fake redactions and write a usable PDF
-npx unseal strip document.pdf --output clean.pdf
+npx @liiift-studio/unseal strip document.pdf --output clean.pdf
 
 # Also write a JSON findings report
-npx unseal strip document.pdf --output clean.pdf --report findings.json
+npx @liiift-studio/unseal strip document.pdf --output clean.pdf --report findings.json
 ```
 
 ### Presets
@@ -40,7 +40,7 @@ npx unseal strip document.pdf --output clean.pdf --report findings.json
 ## API
 
 ```typescript
-import { audit, unseal, AuditPresets } from 'unseal';
+import { audit, unseal, AuditPresets } from '@liiift-studio/unseal';
 import { readFile, writeFile } from 'fs/promises';
 
 const pdf = await readFile('document.pdf');

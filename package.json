@@ -1,5 +1,5 @@
 {
-	"name": "unseal",
+	"name": "@liiift-studio/unseal",
 	"version": "0.1.0",
 	"description": "Detect and remove fake PDF redactions. Works on PDFs from any tool.",
 	"type": "module",

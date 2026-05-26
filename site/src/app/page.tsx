@@ -53,9 +53,9 @@ export default function Home() {
 				</p>
 
 				<div className="flex flex-wrap items-center gap-4">
-					<CopyInstall pkg="unseal" />
+					<CopyInstall pkg="@liiift-studio/unseal" />
 					<a
-						href="https://npmjs.com/package/unseal"
+						href="https://npmjs.com/package/@liiift-studio/unseal"
 						className="text-xs font-medium px-4 py-2 rounded-full transition-colors"
 						style={{ background: "var(--btn-bg)", color: "var(--btn-fg)" }}
 					>
@@ -167,7 +167,7 @@ export default function Home() {
 				<div className="flex flex-col gap-10">
 					<div className="flex flex-col gap-3">
 						<p className="text-xs" style={{ color: "var(--ink-dim)" }}>Basic audit</p>
-						<CodeBlock code={`import { audit } from 'unseal'
+						<CodeBlock code={`import { audit } from '@liiift-studio/unseal'
 import { readFile } from 'node:fs/promises'
 
 const pdf = await readFile('document.pdf')
@@ -188,7 +188,7 @@ if (!report.clean) {
 					</div>
 					<div className="flex flex-col gap-3">
 						<p className="text-xs" style={{ color: "var(--ink-dim)" }}>Recovery — strip overlays, annotations, and prior revisions</p>
-						<CodeBlock code={`import { unseal } from 'unseal'
+						<CodeBlock code={`import { unseal } from '@liiift-studio/unseal'
 
 const result = await unseal(pdf.buffer)
 // result.pdf         — modified PDF with fake redactions removed
@@ -197,9 +197,9 @@ const result = await unseal(pdf.buffer)
 					</div>
 					<div className="flex flex-col gap-3">
 						<p className="text-xs" style={{ color: "var(--ink-dim)" }}>CLI</p>
-						<CodeBlock code={`npx unseal audit document.pdf
-npx unseal audit document.pdf --preset forensic --json
-npx unseal strip document.pdf --output unsealed.pdf --report findings.json`} />
+						<CodeBlock code={`npx @liiift-studio/unseal audit document.pdf
+npx @liiift-studio/unseal audit document.pdf --preset forensic --json
+npx @liiift-studio/unseal strip document.pdf --output unsealed.pdf --report findings.json`} />
 					</div>
 				</div>
 
@@ -245,7 +245,7 @@ npx unseal strip document.pdf --output unsealed.pdf --report findings.json`} />
 				<div className="flex flex-wrap gap-x-6 gap-y-1" style={{ color: "var(--ink-dim)" }}>
 					<a href="https://liiift.studio" target="_blank" rel="noopener noreferrer" className="hover:opacity-60 transition-opacity">liiift.studio</a>
 					<a href="https://github.com/Liiift-Studio/unseal" target="_blank" rel="noopener noreferrer" className="hover:opacity-60 transition-opacity">GitHub</a>
-					<a href="https://npmjs.com/package/unseal" target="_blank" rel="noopener noreferrer" className="hover:opacity-60 transition-opacity">npm</a>
+					<a href="https://npmjs.com/package/@liiift-studio/unseal" target="_blank" rel="noopener noreferrer" className="hover:opacity-60 transition-opacity">npm</a>
 					<span className="ml-auto font-mono">v{version}</span>
 				</div>
 			</footer>
