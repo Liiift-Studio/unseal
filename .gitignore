@@ -3,3 +3,9 @@ dist/
 *.tsbuildinfo
 .DS_Store
 *.local
+
+# Demo capture artifacts (regenerable via `npm run capture`).
+# assets/demo.gif IS committed (README references it); the sample PDFs are not.
+assets/*.pdf
+/secret.pdf
+/clean.pdf
