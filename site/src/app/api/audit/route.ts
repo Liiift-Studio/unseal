@@ -1,6 +1,6 @@
 // API route — receives a PDF upload and returns an audit report.
 import { type NextRequest } from "next/server"
-import type { AuditOptions } from "unseal"
+import type { AuditOptions } from "@liiift-studio/unseal"
 
 const MAX_BYTES = 4 * 1024 * 1024 // 4 MB
 
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
 	}
 
 	try {
-		const { audit } = await import("unseal")
+		const { audit } = await import("@liiift-studio/unseal")
 		const buffer = await file.arrayBuffer()
 		const report = await audit(buffer, options)
 		return Response.json({ report })

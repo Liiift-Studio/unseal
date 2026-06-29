@@ -9,3 +9,4 @@ dist/
 assets/*.pdf
 /secret.pdf
 /clean.pdf
+.vercel

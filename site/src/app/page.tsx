@@ -2,7 +2,7 @@
 import AuditDemo from "@/components/AuditDemo"
 import CodeBlock from "@/components/CodeBlock"
 import CopyInstall from "@/components/CopyInstall"
-import { version } from "../../../package.json"
+import { version } from "../../package.json"
 
 export const maxDuration = 60
 

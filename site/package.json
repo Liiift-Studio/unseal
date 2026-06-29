@@ -1,10 +1,10 @@
 {
 	"name": "unseal-site",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"private": true,
 	"scripts": {
 		"dev": "next dev",
-		"build": "cd .. && npm run build && cd site && next build",
+		"build": "next build",
 		"start": "next start",
 		"lint": "eslint"
 	},
@@ -12,7 +12,7 @@
 		"next": "^15.3.2",
 		"react": "^19.1.0",
 		"react-dom": "^19.1.0",
-		"unseal": "file:.."
+		"@liiift-studio/unseal": "^0.1.1"
 	},
 	"devDependencies": {
 		"@tailwindcss/postcss": "^4",
