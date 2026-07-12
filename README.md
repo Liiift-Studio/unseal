@@ -1,3 +1,6 @@
+> [!IMPORTANT]
+> **Moved.** `unseal` has been folded into **[scrubzero](https://github.com/Liiift-Studio/scrubzero)** — its `audit()` / `unseal()` are now exported from the `scrubzero` npm package (which also does redaction). Install `npm i scrubzero`. This repo is archived and the `@liiift-studio/unseal` package is deprecated.
+
 # unseal
 
 Detect and remove fake PDF redactions. Works on PDFs from any tool — Acrobat, PDFTron, open-redact-pdf, and others.
